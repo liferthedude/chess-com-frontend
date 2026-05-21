@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import Spinner from './Spinner'
 
 const Chessboard = dynamic(() => import('react-chessboard').then(m => m.Chessboard), { ssr: false })
 
@@ -192,10 +193,10 @@ export default function PuzzleTable() {
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.15)' }}>
               <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 120 }}>ID</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Tags</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 72 }}>Rating</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', width: 280 }}>Tags</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 120 }}>Attempted</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 100 }}>Solved</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 72 }}>Rating</th>
               <th className="py-3 px-4" style={{ minWidth: 40 }} />
             </tr>
           </thead>
@@ -223,7 +224,10 @@ export default function PuzzleTable() {
                     #{puzzle.id}
                   </a>
                 </td>
-                <td className="py-2 px-4" style={{ minWidth: 160 }}>
+                <td className="py-2 px-4 text-xs font-mono font-semibold" style={{ color: '#a78bfa' }}>
+                  {puzzle.rating ?? '—'}
+                </td>
+                <td className="py-2 px-4" style={{ width: 280 }}>
                   <div className="flex flex-wrap gap-1">
                     {(Array.isArray(puzzle.tags) ? puzzle.tags : []).map(tag => (
                       <span
@@ -256,9 +260,6 @@ export default function PuzzleTable() {
                     </span>
                   )}
                 </td>
-                <td className="py-2 px-4 text-xs font-mono font-semibold" style={{ color: '#a78bfa' }}>
-                  {puzzle.rating ?? '—'}
-                </td>
                 <td className="py-2 px-4">
                   {puzzle.fen && (
                     <span
@@ -283,9 +284,7 @@ export default function PuzzleTable() {
             ))}
             {loading && (
               <tr>
-                <td colSpan={6} className="py-10 text-center text-xs tracking-widest uppercase animate-pulse" style={{ color: '#6d28d9' }}>
-                  Loading...
-                </td>
+                <td colSpan={6}><Spinner /></td>
               </tr>
             )}
             {!loading && puzzles.length === 0 && (

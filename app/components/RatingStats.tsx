@@ -3,18 +3,18 @@
 import { useEffect, useState } from 'react'
 import Spinner from './Spinner'
 
-interface TagStat {
-  tag: string
+interface RatingStat {
+  bucket: number
   total: number
   solved: number
 }
 
-export default function TagStats() {
-  const [stats, setStats] = useState<TagStat[]>([])
+export default function RatingStats() {
+  const [stats, setStats] = useState<RatingStat[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/stats/solved-by-tag')
+    fetch('/api/stats/solved-by-rating')
       .then(r => r.json())
       .then(data => { setStats(data); setLoading(false) })
   }, [])
@@ -45,7 +45,7 @@ export default function TagStats() {
   return (
     <div style={cardStyle}>
       <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#7c3aed' }}>
-        Solved % by tag
+        Solved % by rating
       </div>
       <div className="flex flex-col gap-2">
         {stats.map(s => {
@@ -54,13 +54,9 @@ export default function TagStats() {
           const pct = total > 0 ? Math.round((solved / total) * 100) : 0
           const barWidth = Math.round((total / maxTotal) * 100)
           return (
-            <div key={s.tag} className="flex items-center gap-3">
-              <div
-                className="text-xs font-medium text-right shrink-0"
-                style={{ width: 140, color: '#c4b5fd', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                title={s.tag}
-              >
-                {s.tag}
+            <div key={s.bucket} className="flex items-center gap-3">
+              <div className="text-xs font-medium text-right shrink-0 tabular-nums" style={{ width: 90, color: '#c4b5fd' }}>
+                {s.bucket}–{s.bucket + 49}
               </div>
               <div
                 className="relative flex-1 rounded-full overflow-hidden"
