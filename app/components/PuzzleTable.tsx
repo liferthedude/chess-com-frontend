@@ -12,6 +12,7 @@ interface Puzzle {
   attempted_at: string
   solved_at: string | null
   tags: string[]
+  rating: number | null
 }
 
 interface ApiResponse {
@@ -194,6 +195,7 @@ export default function PuzzleTable() {
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Tags</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 120 }}>Attempted</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 100 }}>Solved</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 72 }}>Rating</th>
               <th className="py-3 px-4" style={{ minWidth: 40 }} />
             </tr>
           </thead>
@@ -254,6 +256,9 @@ export default function PuzzleTable() {
                     </span>
                   )}
                 </td>
+                <td className="py-2 px-4 text-xs font-mono font-semibold" style={{ color: '#a78bfa' }}>
+                  {puzzle.rating ?? '—'}
+                </td>
                 <td className="py-2 px-4">
                   {puzzle.fen && (
                     <span
@@ -278,14 +283,14 @@ export default function PuzzleTable() {
             ))}
             {loading && (
               <tr>
-                <td colSpan={5} className="py-10 text-center text-xs tracking-widest uppercase animate-pulse" style={{ color: '#6d28d9' }}>
+                <td colSpan={6} className="py-10 text-center text-xs tracking-widest uppercase animate-pulse" style={{ color: '#6d28d9' }}>
                   Loading...
                 </td>
               </tr>
             )}
             {!loading && puzzles.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
+                <td colSpan={6} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
                   No puzzles found
                 </td>
               </tr>

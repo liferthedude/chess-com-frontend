@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   ) as any
 
   const [rows] = await pool.query(
-    `SELECT id, fen, attempted_at, solved_at, tags FROM puzzles ${where} ORDER BY attempted_at DESC LIMIT ? OFFSET ?`,
+    `SELECT id, fen, attempted_at, solved_at, tags, rating FROM puzzles ${where} ORDER BY attempted_at DESC LIMIT ? OFFSET ?`,
     [PAGE_SIZE, offset]
   )
 
