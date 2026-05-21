@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/app/lib/db'
-import { getSession } from '@/app/lib/session'
+import { auth } from '@/auth'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession()
-  if (!session.isLoggedIn) {
+  const session = await auth()
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
