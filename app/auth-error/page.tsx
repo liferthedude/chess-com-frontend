@@ -1,11 +1,14 @@
+import ChessBg from '@/app/components/ChessBg'
+
 export default function AuthErrorPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center"
       style={{ background: 'linear-gradient(160deg, #09011a 0%, #14063a 50%, #09011a 100%)' }}
     >
+      <ChessBg />
       <div
-        className="flex flex-col items-center gap-5 w-80 text-center"
+        className="relative flex flex-col items-center gap-5 w-80 text-center"
         style={{
           background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
           border: '1px solid rgba(248, 113, 113, 0.25)',
