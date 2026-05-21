@@ -16,6 +16,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /services/chess-com-frontend
+            git checkout -- .
             git pull
             npm install --production=false
             npm run build
