@@ -15,7 +15,7 @@ export async function GET() {
     SELECT
       FLOOR(rating / 50) * 50                               AS bucket,
       COUNT(*)                                              AS total,
-      SUM(CASE WHEN solved_at IS NOT NULL THEN 1 ELSE 0 END) AS solved
+      SUM(solved)                                           AS solved
     FROM puzzles
     GROUP BY bucket
     ORDER BY bucket ASC

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * PAGE_SIZE
 
   const where = failuresOnly
-    ? 'WHERE solved_at IS NULL AND attempted_at < DATE_SUB(NOW(), INTERVAL 30 DAY)'
+    ? 'WHERE solved = 0 AND attempted_at < DATE_SUB(NOW(), INTERVAL 30 DAY)'
     : ''
 
   const [[{ total }]] = await pool.query(
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   ) as any
 
   const [rows] = await pool.query(
-    `SELECT id, fen, attempted_at, solved_at, tags, rating FROM puzzles ${where} ORDER BY attempted_at DESC LIMIT ? OFFSET ?`,
+    `SELECT id, fen, attempted_at, solved, tags, rating FROM puzzles ${where} ORDER BY attempted_at DESC LIMIT ? OFFSET ?`,
     [PAGE_SIZE, offset]
   )
 

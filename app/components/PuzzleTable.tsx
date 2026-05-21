@@ -11,7 +11,7 @@ interface Puzzle {
   id: number
   fen: string | null
   attempted_at: string
-  solved_at: string | null
+  solved: boolean
   tags: string[]
   rating: number | null
 }
@@ -98,6 +98,8 @@ export default function PuzzleTable() {
   const [loading, setLoading] = useState(true)
   const [hoveredFen, setHoveredFen] = useState<string | null>(null)
   const [boardPos, setBoardPos] = useState({ x: 0, y: 0 })
+  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [solving, setSolving] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -129,6 +131,21 @@ export default function PuzzleTable() {
   function goToPage(p: number) {
     setPage(p)
     updateUrl(failuresOnly, p)
+  }
+
+  async function handleSolveConfirm() {
+    if (confirmId === null) return
+    setSolving(true)
+    await fetch(`/api/puzzles/${confirmId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'solve' }),
+    })
+    setPuzzles(prev => prev.map(p =>
+      p.id === confirmId ? { ...p, solved: true } : p
+    ))
+    setSolving(false)
+    setConfirmId(null)
   }
 
   function handleIconMouseEnter(e: React.MouseEvent, fen: string) {
@@ -248,13 +265,19 @@ export default function PuzzleTable() {
                   {formatDate(puzzle.attempted_at)}
                 </td>
                 <td className="py-2 px-4">
-                  {puzzle.solved_at ? (
+                  {puzzle.solved ? (
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(74, 222, 128, 0.12)', color: '#4ade80', border: '1px solid rgba(74, 222, 128, 0.25)' }}>
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       YES
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(248, 113, 113, 0.12)', color: '#f87171', border: '1px solid rgba(248, 113, 113, 0.25)' }}>
+                    <span
+                      onClick={() => setConfirmId(puzzle.id)}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer"
+                      style={{ background: 'rgba(248, 113, 113, 0.12)', color: '#f87171', border: '1px solid rgba(248, 113, 113, 0.25)', transition: 'all 0.15s' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(248, 113, 113, 0.25)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(248, 113, 113, 0.12)' }}
+                    >
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2l-6 6" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round"/></svg>
                       NO
                     </span>
@@ -338,6 +361,62 @@ export default function PuzzleTable() {
           </div>
         )}
       </div>
+
+      {/* Confirm solve modal */}
+      {confirmId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={() => !solving && setConfirmId(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.35)',
+              borderRadius: 16,
+              boxShadow: '0 24px 64px rgba(109, 40, 217, 0.4)',
+              padding: '28px 32px',
+              minWidth: 300,
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: 32, marginBottom: 12 }}>♟️</div>
+            <div style={{ color: '#e9d5ff', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
+              Mark puzzle as solved?
+            </div>
+            <div style={{ color: '#7c3aed', fontSize: 12, marginBottom: 24 }}>
+              #{confirmId}
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setConfirmId(null)}
+                disabled={solving}
+                style={{
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  background: 'rgba(109, 40, 217, 0.12)', color: '#a78bfa',
+                  border: '1px solid rgba(139, 92, 246, 0.25)', opacity: solving ? 0.4 : 1,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSolveConfirm}
+                disabled={solving}
+                style={{
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: solving ? 'default' : 'pointer',
+                  background: solving ? 'rgba(74, 222, 128, 0.15)' : 'linear-gradient(90deg, #16a34a, #15803d)',
+                  color: '#4ade80', border: '1px solid rgba(74, 222, 128, 0.35)',
+                  boxShadow: solving ? 'none' : '0 0 12px rgba(74, 222, 128, 0.2)',
+                  opacity: solving ? 0.7 : 1,
+                }}
+              >
+                {solving ? 'Saving…' : '✓ Yes, solved'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating chess board */}
       {hoveredFen && (

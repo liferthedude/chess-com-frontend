@@ -15,7 +15,7 @@ export async function GET() {
     SELECT
       tag,
       COUNT(*)                                              AS total,
-      SUM(CASE WHEN solved_at IS NOT NULL THEN 1 ELSE 0 END) AS solved
+      SUM(solved)                                           AS solved
     FROM puzzles,
     JSON_TABLE(tags, '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')) t
     WHERE JSON_LENGTH(tags) > 0
