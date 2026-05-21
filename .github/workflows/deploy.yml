@@ -20,4 +20,4 @@ jobs:
             git pull
             npm install --production=false
             npm run build
-            sudo systemctl restart chess-frontend
+            sudo systemctl restart chess-com-frontend
