@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { logout } from '@/app/actions/auth'
 import PuzzleTable from '@/app/components/PuzzleTable'
 import TagStats from '@/app/components/TagStats'
@@ -32,7 +33,9 @@ export default function Home() {
       </header>
       <main className="px-8 py-8 flex justify-center">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
-          <PuzzleTable />
+          <Suspense fallback={null}>
+            <PuzzleTable />
+          </Suspense>
           <div className="w-full lg:w-96 lg:flex-shrink-0 lg:mt-10">
             <TagStats />
           </div>
