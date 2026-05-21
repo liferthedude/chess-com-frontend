@@ -10,7 +10,7 @@ export const sessionOptions = {
   cookieName: 'chess-session',
   cookieOptions: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     maxAge: 60 * 60 * 24 * 7, // 1 week
   },
 }
