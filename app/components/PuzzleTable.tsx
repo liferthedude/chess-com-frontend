@@ -159,8 +159,7 @@ export default function PuzzleTable() {
     border: '1px solid rgba(139, 92, 246, 0.2)',
     borderRadius: '16px',
     boxShadow: '0 8px 40px rgba(109, 40, 217, 0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
-    width: 'fit-content',
-    maxWidth: '100%',
+    width: '100%',
   }
 
   // Pagination page numbers with ellipsis
@@ -175,7 +174,7 @@ export default function PuzzleTable() {
   }
 
   return (
-    <div>
+    <div className="w-full lg:w-fit">
       {/* Filter bar */}
       <div className="flex items-center gap-3 mb-5">
         <span className="text-xs font-medium uppercase tracking-wider" style={{ color: '#a78bfa' }}>
@@ -206,7 +205,8 @@ export default function PuzzleTable() {
 
       {/* Card */}
       <div style={cardStyle}>
-        <table className="w-full text-sm border-collapse">
+        <div style={{ overflowX: 'auto', borderRadius: '16px', width: '100%' }}>
+        <table className="text-sm border-collapse" style={{ minWidth: 620 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.15)' }}>
               <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 120 }}>ID</th>
@@ -319,6 +319,8 @@ export default function PuzzleTable() {
             )}
           </tbody>
         </table>
+
+        </div>{/* end overflow-x-auto */}
 
         {/* Pagination */}
         {totalPages > 1 && (

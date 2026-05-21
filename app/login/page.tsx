@@ -1,4 +1,5 @@
 import { signIn } from '@/auth'
+import ChessBg from '@/app/components/ChessBg'
 
 export default function LoginPage() {
   return (
@@ -6,8 +7,10 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center"
       style={{ background: 'linear-gradient(160deg, #09011a 0%, #14063a 50%, #09011a 100%)' }}
     >
+      <ChessBg />
+
       <div
-        className="flex flex-col gap-6 w-72"
+        className="relative flex flex-col gap-6 w-72"
         style={{
           background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
           border: '1px solid rgba(139, 92, 246, 0.2)',

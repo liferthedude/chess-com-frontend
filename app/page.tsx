@@ -3,15 +3,17 @@ import { logout } from '@/app/actions/auth'
 import PuzzleTable from '@/app/components/PuzzleTable'
 import TagStats from '@/app/components/TagStats'
 import RatingStats from '@/app/components/RatingStats'
+import ChessBg from '@/app/components/ChessBg'
 
 export default function Home() {
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #09011a 0%, #14063a 50%, #09011a 100%)' }}>
-      <header style={{
+      <ChessBg />
+      <header style={{ position: 'relative', zIndex: 1,
         background: 'linear-gradient(90deg, #0f0626 0%, #1a0840 100%)',
         borderBottom: '1px solid rgba(139, 92, 246, 0.18)',
         boxShadow: '0 2px 24px rgba(109, 40, 217, 0.12)',
-      }} className="px-8 py-4 flex items-center justify-between">
+      }} className="px-4 lg:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl select-none">♟</span>
           <h1 className="text-base font-semibold tracking-wide" style={{ color: '#e9d5ff' }}>
@@ -32,8 +34,8 @@ export default function Home() {
           </button>
         </form>
       </header>
-      <main className="px-8 py-8 flex justify-center">
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <main className="px-4 lg:px-8 py-6 lg:py-8 flex justify-center" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="flex flex-col lg:flex-row gap-6 items-start w-full lg:w-fit">
           <Suspense fallback={null}>
             <PuzzleTable />
           </Suspense>
