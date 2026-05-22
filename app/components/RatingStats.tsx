@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Spinner from './Spinner'
+import ErrorIcon from './ErrorIcon'
 
 interface RatingStat {
   bucket: number
@@ -9,41 +10,53 @@ interface RatingStat {
   solved: number
 }
 
+const cardBase = {
+  background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
+  border: '1px solid rgba(139, 92, 246, 0.2)',
+  borderRadius: 16,
+  boxShadow: '0 8px 40px rgba(109, 40, 217, 0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
+  width: '100%',
+}
+
+function ErrorState({ status }: { status: number }) {
+  return (
+    <div style={cardBase}>
+      <div className="flex flex-col items-center justify-center gap-2 py-10">
+        <ErrorIcon status={status} size={32} />
+      </div>
+    </div>
+  )
+}
+
 export default function RatingStats() {
   const [stats, setStats] = useState<RatingStat[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/stats/solved-by-rating')
-      .then(r => r.json())
-      .then(data => { setStats(data); setLoading(false) })
+      .then(r => {
+        if (!r.ok) { setError(r.status); setLoading(false); return null }
+        return r.json()
+      })
+      .then(data => {
+        if (data) { setStats(data); setLoading(false) }
+      })
+      .catch(() => { setError(0); setLoading(false) })
   }, [])
 
   if (loading) return (
-    <div style={{
-      background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
-      border: '1px solid rgba(139, 92, 246, 0.2)',
-      borderRadius: 16,
-      boxShadow: '0 8px 40px rgba(109, 40, 217, 0.15)',
-      width: '100%',
-    }}>
+    <div style={{ ...cardBase, boxShadow: '0 8px 40px rgba(109, 40, 217, 0.15)' }}>
       <Spinner />
     </div>
   )
 
+  if (error !== null) return <ErrorState status={error} />
+
   const maxTotal = Math.max(...stats.map(s => s.total), 1)
 
-  const cardStyle = {
-    background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
-    border: '1px solid rgba(139, 92, 246, 0.2)',
-    borderRadius: 16,
-    boxShadow: '0 8px 40px rgba(109, 40, 217, 0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
-    padding: '20px 24px',
-    width: '100%',
-  }
-
   return (
-    <div style={cardStyle}>
+    <div style={{ ...cardBase, padding: '20px 24px' }}>
       <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#7c3aed' }}>
         Solved % by rating
       </div>

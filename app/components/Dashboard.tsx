@@ -7,6 +7,7 @@ import PuzzleTable from './PuzzleTable'
 import TagStats from './TagStats'
 import RatingStats from './RatingStats'
 import LastParsedAt from './LastParsedAt'
+import ErrorIcon from './ErrorIcon'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -15,11 +16,13 @@ export default function Dashboard() {
 
   const [failuresOnly, setFailuresOnly] = useState(() => searchParams.get('failures') === 'true')
   const [totalPuzzles, setTotalPuzzles] = useState<number | null>(null)
+  const [totalsError, setTotalsError] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/stats/totals')
-      .then(r => r.json())
-      .then(data => setTotalPuzzles(data.total_puzzles))
+      .then(r => { if (!r.ok) { setTotalsError(r.status); return null } return r.json() })
+      .then(data => { if (data) setTotalPuzzles(data.total_puzzles) })
+      .catch(() => setTotalsError(0))
   }, [])
 
   function toggleFailures() {
@@ -61,7 +64,11 @@ export default function Dashboard() {
           {failuresOnly ? 'ON' : 'OFF'}
         </span>
         <div className="ml-auto flex items-center gap-4">
-          {totalPuzzles !== null && (
+          {totalsError !== null ? (
+            <span className="flex items-center gap-1.5 text-sm" style={{ color: '#f87171' }}>
+              total puzzles: <ErrorIcon status={totalsError} size={14} />
+            </span>
+          ) : totalPuzzles !== null && (
             <span className="text-sm" style={{ color: '#6d28d9' }}>
               total puzzles: <span style={{ color: '#a78bfa' }}>{totalPuzzles.toLocaleString()}</span>
             </span>

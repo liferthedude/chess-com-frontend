@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Spinner from './Spinner'
+import ErrorIcon from './ErrorIcon'
 
 const Chessboard = dynamic(() => import('react-chessboard').then(m => m.Chessboard), { ssr: false })
 
@@ -95,6 +96,7 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(() => Math.max(1, parseInt(searchParams.get('page') ?? '1', 10)))
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<number | null>(null)
   const [hoveredFen, setHoveredFen] = useState<string | null>(null)
   const [boardPos, setBoardPos] = useState({ x: 0, y: 0 })
   const [confirmId, setConfirmId] = useState<number | null>(null)
@@ -104,18 +106,22 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     setPage(1)
   }, [failuresOnly])
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     fetch(`/api/puzzles?failuresOnly=${failuresOnly}&page=${page}`)
-      .then(r => r.json())
-      .then((data: ApiResponse) => {
-        setPuzzles(data.puzzles)
-        setTotal(data.total)
-        setLoading(false)
+      .then(r => {
+        if (!r.ok) { setError(r.status); setLoading(false); return null }
+        return r.json()
       })
+      .then((data: ApiResponse | null) => {
+        if (data) { setPuzzles(data.puzzles); setTotal(data.total); setLoading(false) }
+      })
+      .catch(() => { setError(0); setLoading(false) })
   }, [failuresOnly, page])
 
   function goToPage(p: number) {
@@ -282,7 +288,16 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
                 <td colSpan={6}><Spinner /></td>
               </tr>
             )}
-            {!loading && puzzles.length === 0 && (
+            {!loading && error !== null && (
+              <tr>
+                <td colSpan={6}>
+                  <div className="flex flex-col items-center justify-center gap-2 py-10">
+                    <ErrorIcon status={error} size={32} />
+                  </div>
+                </td>
+              </tr>
+            )}
+            {!loading && error === null && puzzles.length === 0 && (
               <tr>
                 <td colSpan={6} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
                   No puzzles found

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import ErrorIcon from './ErrorIcon'
 
 function timeAgo(isoString: string): string {
   const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000)
@@ -13,11 +14,13 @@ function timeAgo(isoString: string): string {
 export default function LastParsedAt() {
   const [lastParsedAt, setLastParsedAt] = useState<string | null>(null)
   const [display, setDisplay] = useState<string>('')
+  const [error, setError] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/stats/last-parsed')
-      .then(r => r.json())
-      .then(data => setLastParsedAt(data.last_parsed_at))
+      .then(r => { if (!r.ok) { setError(r.status); return null } return r.json() })
+      .then(data => { if (data) setLastParsedAt(data.last_parsed_at) })
+      .catch(() => setError(0))
   }, [])
 
   useEffect(() => {
@@ -26,6 +29,12 @@ export default function LastParsedAt() {
     const interval = setInterval(() => setDisplay(timeAgo(lastParsedAt)), 30_000)
     return () => clearInterval(interval)
   }, [lastParsedAt])
+
+  if (error !== null) return (
+    <div className="flex items-center gap-1.5 text-sm" style={{ color: '#f87171' }}>
+      last parsed: <ErrorIcon status={error} size={14} />
+    </div>
+  )
 
   if (!lastParsedAt) return null
 
