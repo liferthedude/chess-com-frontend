@@ -8,6 +8,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  throw new Error('Sentry test exception from solved-by-tag')
+
   const [rows] = await pool.query(`
     SELECT
       tag,
