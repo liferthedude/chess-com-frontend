@@ -170,15 +170,23 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
       {/* Card */}
       <div style={cardStyle}>
         <div style={{ overflowX: 'auto', borderRadius: '16px', width: '100%' }}>
-        <table className="text-sm border-collapse" style={{ minWidth: 620 }}>
+        <table className="text-sm border-collapse" style={{ tableLayout: 'fixed', width: 730 }}>
+          <colgroup>
+            <col style={{ width: 120 }} />
+            <col style={{ width: 80 }} />
+            <col style={{ width: 280 }} />
+            <col style={{ width: 130 }} />
+            <col style={{ width: 110 }} />
+            <col style={{ width: 50 }} />
+          </colgroup>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.15)' }}>
-              <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 120 }}>ID</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 72 }}>Rating</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', width: 280 }}>Tags</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 120 }}>Attempted</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed', minWidth: 100 }}>Solved</th>
-              <th className="py-3 px-4" style={{ minWidth: 40 }} />
+              <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>ID</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Rating</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Tags</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Attempted</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Solved</th>
+              <th className="py-3 px-4" />
             </tr>
           </thead>
           <tbody>

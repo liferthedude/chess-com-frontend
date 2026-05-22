@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
 import PuzzleTable from './PuzzleTable'
@@ -13,7 +13,14 @@ export default function Dashboard() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const [failuresOnly, setFailuresOnly] = useState(() => searchParams.get('failures') !== 'false')
+  const [failuresOnly, setFailuresOnly] = useState(() => searchParams.get('failures') === 'true')
+  const [totalPuzzles, setTotalPuzzles] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/stats/totals')
+      .then(r => r.json())
+      .then(data => setTotalPuzzles(data.total_puzzles))
+  }, [])
 
   function toggleFailures() {
     const next = !failuresOnly
@@ -53,7 +60,12 @@ export default function Dashboard() {
         <span className="text-xs font-semibold" style={{ color: failuresOnly ? '#a78bfa' : '#4b5563' }}>
           {failuresOnly ? 'ON' : 'OFF'}
         </span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-4">
+          {totalPuzzles !== null && (
+            <span className="text-sm" style={{ color: '#6d28d9' }}>
+              total puzzles: <span style={{ color: '#a78bfa' }}>{totalPuzzles.toLocaleString()}</span>
+            </span>
+          )}
           <LastParsedAt />
         </div>
       </div>

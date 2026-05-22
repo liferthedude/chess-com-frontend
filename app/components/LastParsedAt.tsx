@@ -34,7 +34,7 @@ export default function LastParsedAt() {
   const dotColor = isStale ? 'rgba(248,113,113,0.5)' : 'rgba(74,222,128,0.5)'
 
   return (
-    <div className="flex items-center gap-1.5 text-xs" style={{ color }}>
+    <div className="flex items-center gap-1.5 text-sm" style={{ color }}>
       <span
         style={{
           width: 6, height: 6, borderRadius: '50%',
