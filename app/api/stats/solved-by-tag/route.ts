@@ -3,12 +3,12 @@ import pool from '@/app/lib/db'
 import { auth } from '@/auth'
 
 export async function GET() {
+  throw new Error('Sentry test exception from solved-by-tag')
+
   const session = await auth()
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-
-  throw new Error('Sentry test exception from solved-by-tag')
 
   const [rows] = await pool.query(`
     SELECT
