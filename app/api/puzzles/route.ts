@@ -4,10 +4,7 @@ import { auth } from '@/auth'
 
 const PAGE_SIZE = 25
 
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
-
 export async function GET(request: NextRequest) {
-  await sleep(Math.random() * 1500)
   const session = await auth()
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
