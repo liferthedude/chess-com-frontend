@@ -86,14 +86,13 @@ const btnDisabled: React.CSSProperties = {
   cursor: 'default',
 }
 
-export default function PuzzleTable() {
+export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const [puzzles, setPuzzles] = useState<Puzzle[]>([])
   const [total, setTotal] = useState(0)
-  const [failuresOnly, setFailuresOnly] = useState(() => searchParams.get('failures') !== 'false')
   const [page, setPage] = useState(() => Math.max(1, parseInt(searchParams.get('page') ?? '1', 10)))
   const [loading, setLoading] = useState(true)
   const [hoveredFen, setHoveredFen] = useState<string | null>(null)
@@ -102,6 +101,11 @@ export default function PuzzleTable() {
   const [solving, setSolving] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  useEffect(() => {
+    setLoading(true)
+    setPage(1)
+  }, [failuresOnly])
 
   useEffect(() => {
     setLoading(true)
@@ -114,23 +118,11 @@ export default function PuzzleTable() {
       })
   }, [failuresOnly, page])
 
-  function updateUrl(nextFailures: boolean, nextPage: number) {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('failures', String(nextFailures))
-    params.set('page', String(nextPage))
-    router.replace(`${pathname}?${params.toString()}`)
-  }
-
-  function toggleFailures() {
-    const next = !failuresOnly
-    setFailuresOnly(next)
-    setPage(1)
-    updateUrl(next, 1)
-  }
-
   function goToPage(p: number) {
     setPage(p)
-    updateUrl(failuresOnly, p)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', String(p))
+    router.replace(`${pathname}?${params.toString()}`)
   }
 
   async function handleSolveConfirm() {
@@ -175,34 +167,6 @@ export default function PuzzleTable() {
 
   return (
     <div className="w-full lg:w-fit">
-      {/* Filter bar */}
-      <div className="flex items-center gap-3 mb-5">
-        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: '#a78bfa' }}>
-          Failures only &gt;30 days
-        </span>
-        <button
-          onClick={toggleFailures}
-          className="relative inline-flex h-5 w-9 items-center rounded-full transition-all duration-200"
-          style={{
-            background: failuresOnly ? 'linear-gradient(90deg, #7c3aed, #9333ea)' : 'rgba(139, 92, 246, 0.15)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            boxShadow: failuresOnly ? '0 0 12px rgba(124, 58, 237, 0.4)' : 'none',
-          }}
-        >
-          <span
-            className="inline-block h-3.5 w-3.5 rounded-full transition-transform duration-200"
-            style={{
-              background: failuresOnly ? '#fff' : 'rgba(167, 139, 250, 0.6)',
-              transform: failuresOnly ? 'translateX(18px)' : 'translateX(2px)',
-              boxShadow: failuresOnly ? '0 1px 4px rgba(0,0,0,0.3)' : 'none',
-            }}
-          />
-        </button>
-        <span className="text-xs font-semibold" style={{ color: failuresOnly ? '#a78bfa' : '#4b5563' }}>
-          {failuresOnly ? 'ON' : 'OFF'}
-        </span>
-      </div>
-
       {/* Card */}
       <div style={cardStyle}>
         <div style={{ overflowX: 'auto', borderRadius: '16px', width: '100%' }}>
