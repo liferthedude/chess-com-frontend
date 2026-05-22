@@ -428,6 +428,8 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
               boardStyle: { width: 280, height: 280 },
               allowDragging: false,
               boardOrientation: hoveredFen.split(' ')[1] === 'w' ? 'black' : 'white',
+              darkSquareStyle: { backgroundColor: '#c4b5fd' },
+              lightSquareStyle: { backgroundColor: '#f5f3ff' },
             }}
           />
         </div>
