@@ -7,7 +7,9 @@ export const proxy = auth((request) => {
   const isAuthRoute = request.nextUrl.pathname.startsWith('/api/auth')
   const isErrorPage = request.nextUrl.pathname.startsWith('/auth-error')
 
-  if (isAuthRoute || isErrorPage) return NextResponse.next()
+  const isSentryTest = request.nextUrl.pathname === '/api/stats/solved-by-tag'
+
+  if (isAuthRoute || isErrorPage || isSentryTest) return NextResponse.next()
 
   if (!isLoggedIn && !isLoginPage) {
     return NextResponse.redirect(new URL('/login', request.url))
