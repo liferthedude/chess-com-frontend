@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1053.0",
+    "@sentry/nextjs": "^10.53.1",
     "chess.js": "^1.4.0",
     "iron-session": "^8.0.4",
     "mysql2": "^3.22.3",
