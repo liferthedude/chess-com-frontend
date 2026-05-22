@@ -4,6 +4,7 @@ import PuzzleTable from '@/app/components/PuzzleTable'
 import TagStats from '@/app/components/TagStats'
 import RatingStats from '@/app/components/RatingStats'
 import ChessBg from '@/app/components/ChessBg'
+import LastParsedAt from '@/app/components/LastParsedAt'
 
 export default function Home() {
   return (
@@ -36,9 +37,14 @@ export default function Home() {
       </header>
       <main className="px-4 lg:px-8 py-6 lg:py-8 flex justify-center" style={{ position: 'relative', zIndex: 1 }}>
         <div className="flex flex-col lg:flex-row gap-6 items-start w-full lg:w-fit">
-          <Suspense fallback={null}>
-            <PuzzleTable />
-          </Suspense>
+          <div className="w-full lg:w-fit">
+            <div className="flex justify-end mb-2">
+              <LastParsedAt />
+            </div>
+            <Suspense fallback={null}>
+              <PuzzleTable />
+            </Suspense>
+          </div>
           <div className="w-full lg:w-96 lg:flex-shrink-0 lg:mt-10 flex flex-col gap-6">
             <TagStats />
             <RatingStats />
