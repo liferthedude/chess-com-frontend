@@ -20,8 +20,11 @@ const cardBase = {
 
 function ErrorState({ status }: { status: number }) {
   return (
-    <div style={cardBase}>
-      <div className="flex flex-col items-center justify-center gap-2 py-10">
+    <div style={{ ...cardBase, padding: '20px 24px' }}>
+      <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#7c3aed' }}>
+        Solved % by tag
+      </div>
+      <div className="flex flex-col items-center justify-center gap-2 py-6">
         <ErrorIcon status={status} size={32} />
       </div>
     </div>
