@@ -101,6 +101,8 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
   const [boardPos, setBoardPos] = useState({ x: 0, y: 0 })
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [solving, setSolving] = useState(false)
+  const [confirmReattemptId, setConfirmReattemptId] = useState<number | null>(null)
+  const [reattempting, setReattempting] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -144,6 +146,22 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
     ))
     setSolving(false)
     setConfirmId(null)
+  }
+
+  async function handleReattemptConfirm() {
+    if (confirmReattemptId === null) return
+    setReattempting(true)
+    const res = await fetch(`/api/puzzles/${confirmReattemptId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reattempt' }),
+    })
+    const data = await res.json()
+    setPuzzles(prev => prev.map(p =>
+      p.id === confirmReattemptId ? { ...p, attempted_at: data.attempted_at } : p
+    ))
+    setReattempting(false)
+    setConfirmReattemptId(null)
   }
 
   function handleIconMouseEnter(e: React.MouseEvent, fen: string) {
@@ -240,7 +258,14 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
                   </div>
                 </td>
                 <td className="py-2 px-4 text-xs" style={{ color: '#9ca3af' }}>
-                  {formatDate(puzzle.attempted_at)}
+                  <span
+                    onClick={() => setConfirmReattemptId(puzzle.id)}
+                    style={{ cursor: 'pointer', transition: 'color 0.15s' }}
+                    onMouseEnter={e => ((e.target as HTMLElement).style.color = '#a78bfa')}
+                    onMouseLeave={e => ((e.target as HTMLElement).style.color = '#9ca3af')}
+                  >
+                    {formatDate(puzzle.attempted_at)}
+                  </span>
                 </td>
                 <td className="py-2 px-4">
                   {puzzle.solved ? (
@@ -401,6 +426,62 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
                 }}
               >
                 {solving ? 'Saving…' : '✓ Yes, solved'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm reattempt modal */}
+      {confirmReattemptId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={() => !reattempting && setConfirmReattemptId(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.35)',
+              borderRadius: 16,
+              boxShadow: '0 24px 64px rgba(109, 40, 217, 0.4)',
+              padding: '28px 32px',
+              minWidth: 300,
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: 32, marginBottom: 12 }}>⏱</div>
+            <div style={{ color: '#e9d5ff', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
+              Update attempted date?
+            </div>
+            <div style={{ color: '#7c3aed', fontSize: 12, marginBottom: 24 }}>
+              #{confirmReattemptId} → today
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setConfirmReattemptId(null)}
+                disabled={reattempting}
+                style={{
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  background: 'rgba(109, 40, 217, 0.12)', color: '#a78bfa',
+                  border: '1px solid rgba(139, 92, 246, 0.25)', opacity: reattempting ? 0.4 : 1,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReattemptConfirm}
+                disabled={reattempting}
+                style={{
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: reattempting ? 'default' : 'pointer',
+                  background: reattempting ? 'rgba(167, 139, 250, 0.15)' : 'linear-gradient(90deg, #7c3aed, #9333ea)',
+                  color: '#e9d5ff', border: '1px solid rgba(139, 92, 246, 0.5)',
+                  boxShadow: reattempting ? 'none' : '0 0 12px rgba(124, 58, 237, 0.35)',
+                  opacity: reattempting ? 0.7 : 1,
+                }}
+              >
+                {reattempting ? 'Saving…' : '✓ Yes, update'}
               </button>
             </div>
           </div>

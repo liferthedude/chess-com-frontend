@@ -18,14 +18,19 @@ export async function PATCH(
   }
 
   const { action } = await request.json()
-  if (action !== 'solve') {
-    return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+
+  if (action === 'solve') {
+    await pool.query(
+      'UPDATE puzzles SET solved = 1 WHERE id = ? AND solved = 0',
+      [puzzleId]
+    )
+    return NextResponse.json({ ok: true })
   }
 
-  await pool.query(
-    'UPDATE puzzles SET solved = 1 WHERE id = ? AND solved = 0',
-    [puzzleId]
-  )
+  if (action === 'reattempt') {
+    await pool.query('UPDATE puzzles SET attempted_at = NOW() WHERE id = ?', [puzzleId])
+    return NextResponse.json({ ok: true, attempted_at: new Date().toISOString() })
+  }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
