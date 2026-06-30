@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Suspense } from 'react'
-import PuzzleTable from './PuzzleTable'
+import PuzzleCard from './PuzzleCard'
 import LastParsedAt from './LastParsedAt'
 import ErrorIcon from './ErrorIcon'
 
@@ -34,9 +34,9 @@ export default function Dashboard() {
         <LastParsedAt />
       </div>
 
-      {/* Table */}
+      {/* Current puzzle */}
       <Suspense fallback={null}>
-        <PuzzleTable />
+        <PuzzleCard />
       </Suspense>
 
     </div>
