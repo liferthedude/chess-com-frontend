@@ -169,11 +169,10 @@ export default function PuzzleTable() {
       {/* Card */}
       <div style={cardStyle}>
         <div style={{ overflowX: 'auto', borderRadius: '16px', width: '100%' }}>
-        <table className="text-sm border-collapse" style={{ tableLayout: 'fixed', width: 770 }}>
+        <table className="text-sm border-collapse" style={{ tableLayout: 'fixed', width: 490 }}>
           <colgroup>
             <col style={{ width: 120 }} />
             <col style={{ width: 80 }} />
-            <col style={{ width: 280 }} />
             <col style={{ width: 240 }} />
             <col style={{ width: 50 }} />
           </colgroup>
@@ -181,7 +180,6 @@ export default function PuzzleTable() {
             <tr style={{ borderBottom: '1px solid rgba(139, 92, 246, 0.15)' }}>
               <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>ID</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Rating</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Tags</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Result</th>
               <th className="py-3 px-4" />
             </tr>
@@ -212,23 +210,6 @@ export default function PuzzleTable() {
                 </td>
                 <td className="py-2 px-4 text-xs font-mono font-semibold" style={{ color: '#a78bfa' }}>
                   {puzzle.rating ?? '—'}
-                </td>
-                <td className="py-2 px-4" style={{ width: 280 }}>
-                  <div className="flex flex-wrap gap-1">
-                    {(Array.isArray(puzzle.tags) ? puzzle.tags : []).map(tag => (
-                      <span
-                        key={tag}
-                        className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{
-                          background: 'rgba(109, 40, 217, 0.25)',
-                          color: '#c4b5fd',
-                          border: '1px solid rgba(139, 92, 246, 0.2)',
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
                 </td>
                 <td className="py-2 px-4">
                   <div className="flex items-center gap-2">
@@ -278,12 +259,12 @@ export default function PuzzleTable() {
             ))}
             {loading && (
               <tr>
-                <td colSpan={5}><Spinner /></td>
+                <td colSpan={4}><Spinner /></td>
               </tr>
             )}
             {!loading && error !== null && (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={4}>
                   <div className="flex flex-col items-center justify-center gap-2 py-10">
                     <ErrorIcon status={error} size={32} />
                   </div>
@@ -292,7 +273,7 @@ export default function PuzzleTable() {
             )}
             {!loading && error === null && puzzles.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
+                <td colSpan={4} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
                   No puzzles found
                 </td>
               </tr>
