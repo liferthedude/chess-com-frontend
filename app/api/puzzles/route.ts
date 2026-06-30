@@ -11,20 +11,18 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl
-  const failuresOnly = searchParams.get('failuresOnly') !== 'false'
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
   const offset = (page - 1) * PAGE_SIZE
 
-  const where = failuresOnly
-    ? 'WHERE solved = 0 AND attempted_at < DATE_SUB(NOW(), INTERVAL 30 DAY)'
-    : ''
+  // Always restrict to unsolved puzzles attempted more than 30 days ago.
+  const where = 'WHERE solved = 0 AND attempted_at < DATE_SUB(NOW(), INTERVAL 30 DAY)'
 
   const [[{ total }]] = await pool.query(
     `SELECT COUNT(*) as total FROM puzzles ${where}`
   ) as any
 
   const [rows] = await pool.query(
-    `SELECT id, fen, attempted_at, solved, tags, rating FROM puzzles ${where} ORDER BY attempted_at DESC LIMIT ? OFFSET ?`,
+    `SELECT id, fen, attempted_at, solved, tags, rating FROM puzzles ${where} ORDER BY rating IS NULL, rating ASC LIMIT ? OFFSET ?`,
     [PAGE_SIZE, offset]
   )
 

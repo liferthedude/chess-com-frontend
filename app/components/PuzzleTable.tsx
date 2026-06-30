@@ -32,12 +32,6 @@ function normalizeFen(fen: string): string {
   return parts.join(' ')
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  })
-}
-
 function BoardIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -87,7 +81,7 @@ const btnDisabled: React.CSSProperties = {
   cursor: 'default',
 }
 
-export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean }) {
+export default function PuzzleTable() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -99,32 +93,29 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
   const [error, setError] = useState<number | null>(null)
   const [hoveredFen, setHoveredFen] = useState<string | null>(null)
   const [boardPos, setBoardPos] = useState({ x: 0, y: 0 })
-  const [confirmId, setConfirmId] = useState<number | null>(null)
-  const [solving, setSolving] = useState(false)
-  const [confirmReattemptId, setConfirmReattemptId] = useState<number | null>(null)
-  const [reattempting, setReattempting] = useState(false)
+  const [confirm, setConfirm] = useState<{ id: number; action: 'solved' | 'not_solved' } | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [reload, setReload] = useState(0)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   useEffect(() => {
     setLoading(true)
     setError(null)
-    setPage(1)
-  }, [failuresOnly])
-
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetch(`/api/puzzles?failuresOnly=${failuresOnly}&page=${page}`)
+    fetch(`/api/puzzles?page=${page}`)
       .then(r => {
         if (!r.ok) { setError(r.status); setLoading(false); return null }
         return r.json()
       })
       .then((data: ApiResponse | null) => {
-        if (data) { setPuzzles(data.puzzles); setTotal(data.total); setLoading(false) }
+        if (data) {
+          // If a page emptied out (e.g. after marking the last row), step back.
+          if (data.puzzles.length === 0 && page > 1) { setPage(page - 1); return }
+          setPuzzles(data.puzzles); setTotal(data.total); setLoading(false)
+        }
       })
       .catch(() => { setError(0); setLoading(false) })
-  }, [failuresOnly, page])
+  }, [page, reload])
 
   function goToPage(p: number) {
     setPage(p)
@@ -133,35 +124,19 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
     router.replace(`${pathname}?${params.toString()}`)
   }
 
-  async function handleSolveConfirm() {
-    if (confirmId === null) return
-    setSolving(true)
-    await fetch(`/api/puzzles/${confirmId}`, {
+  async function handleConfirm() {
+    if (confirm === null) return
+    setSaving(true)
+    await fetch(`/api/puzzles/${confirm.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'solve' }),
+      body: JSON.stringify({ action: confirm.action }),
     })
-    setPuzzles(prev => prev.map(p =>
-      p.id === confirmId ? { ...p, solved: true } : p
-    ))
-    setSolving(false)
-    setConfirmId(null)
-  }
-
-  async function handleReattemptConfirm() {
-    if (confirmReattemptId === null) return
-    setReattempting(true)
-    const res = await fetch(`/api/puzzles/${confirmReattemptId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'reattempt' }),
-    })
-    const data = await res.json()
-    setPuzzles(prev => prev.map(p =>
-      p.id === confirmReattemptId ? { ...p, attempted_at: data.attempted_at } : p
-    ))
-    setReattempting(false)
-    setConfirmReattemptId(null)
+    setSaving(false)
+    setConfirm(null)
+    // Both actions bump attempted_at to now, so the puzzle leaves the >30-day
+    // failures view — reload the current page to reflect that.
+    setReload(r => r + 1)
   }
 
   function handleIconMouseEnter(e: React.MouseEvent, fen: string) {
@@ -194,13 +169,12 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
       {/* Card */}
       <div style={cardStyle}>
         <div style={{ overflowX: 'auto', borderRadius: '16px', width: '100%' }}>
-        <table className="text-sm border-collapse" style={{ tableLayout: 'fixed', width: 730 }}>
+        <table className="text-sm border-collapse" style={{ tableLayout: 'fixed', width: 770 }}>
           <colgroup>
             <col style={{ width: 120 }} />
             <col style={{ width: 80 }} />
             <col style={{ width: 280 }} />
-            <col style={{ width: 130 }} />
-            <col style={{ width: 110 }} />
+            <col style={{ width: 240 }} />
             <col style={{ width: 50 }} />
           </colgroup>
           <thead>
@@ -208,8 +182,7 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
               <th className="py-3 px-5 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>ID</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Rating</th>
               <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Tags</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Attempted</th>
-              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Solved</th>
+              <th className="py-3 px-4 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: '#7c3aed' }}>Result</th>
               <th className="py-3 px-4" />
             </tr>
           </thead>
@@ -257,34 +230,29 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
                     ))}
                   </div>
                 </td>
-                <td className="py-2 px-4 text-xs" style={{ color: '#9ca3af' }}>
-                  <span
-                    onClick={() => setConfirmReattemptId(puzzle.id)}
-                    style={{ cursor: 'pointer', transition: 'color 0.15s' }}
-                    onMouseEnter={e => ((e.target as HTMLElement).style.color = '#a78bfa')}
-                    onMouseLeave={e => ((e.target as HTMLElement).style.color = '#9ca3af')}
-                  >
-                    {formatDate(puzzle.attempted_at)}
-                  </span>
-                </td>
                 <td className="py-2 px-4">
-                  {puzzle.solved ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(74, 222, 128, 0.12)', color: '#4ade80', border: '1px solid rgba(74, 222, 128, 0.25)' }}>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setConfirm({ id: puzzle.id, action: 'solved' })}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer"
+                      style={{ background: 'rgba(74, 222, 128, 0.12)', color: '#4ade80', border: '1px solid rgba(74, 222, 128, 0.25)', transition: 'all 0.15s' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(74, 222, 128, 0.25)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(74, 222, 128, 0.12)' }}
+                    >
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      YES
-                    </span>
-                  ) : (
-                    <span
-                      onClick={() => setConfirmId(puzzle.id)}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer"
+                      Solved
+                    </button>
+                    <button
+                      onClick={() => setConfirm({ id: puzzle.id, action: 'not_solved' })}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer"
                       style={{ background: 'rgba(248, 113, 113, 0.12)', color: '#f87171', border: '1px solid rgba(248, 113, 113, 0.25)', transition: 'all 0.15s' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(248, 113, 113, 0.25)' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(248, 113, 113, 0.12)' }}
                     >
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2l-6 6" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                      NO
-                    </span>
-                  )}
+                      Not solved
+                    </button>
+                  </div>
                 </td>
                 <td className="py-2 px-4">
                   {puzzle.fen && (
@@ -310,12 +278,12 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
             ))}
             {loading && (
               <tr>
-                <td colSpan={6}><Spinner /></td>
+                <td colSpan={5}><Spinner /></td>
               </tr>
             )}
             {!loading && error !== null && (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={5}>
                   <div className="flex flex-col items-center justify-center gap-2 py-10">
                     <ErrorIcon status={error} size={32} />
                   </div>
@@ -324,7 +292,7 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
             )}
             {!loading && error === null && puzzles.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
+                <td colSpan={5} className="py-12 text-center text-xs uppercase tracking-widest" style={{ color: '#4b2d8a' }}>
                   No puzzles found
                 </td>
               </tr>
@@ -376,12 +344,14 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
         )}
       </div>
 
-      {/* Confirm solve modal */}
-      {confirmId !== null && (
+      {/* Confirm modal */}
+      {confirm !== null && (() => {
+        const isSolved = confirm.action === 'solved'
+        return (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={() => !solving && setConfirmId(null)}
+          onClick={() => !saving && setConfirm(null)}
         >
           <div
             onClick={e => e.stopPropagation()}
@@ -395,98 +365,46 @@ export default function PuzzleTable({ failuresOnly }: { failuresOnly: boolean })
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: 32, marginBottom: 12 }}>♟️</div>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>{isSolved ? '♟️' : '⏱'}</div>
             <div style={{ color: '#e9d5ff', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
-              Mark puzzle as solved?
+              {isSolved ? 'Mark puzzle as solved?' : 'Mark as not solved?'}
             </div>
             <div style={{ color: '#7c3aed', fontSize: 12, marginBottom: 24 }}>
-              #{confirmId}
+              #{confirm.id} → attempted today{isSolved ? ', solved' : ''}
             </div>
             <div className="flex gap-3 justify-center">
               <button
-                onClick={() => setConfirmId(null)}
-                disabled={solving}
+                onClick={() => setConfirm(null)}
+                disabled={saving}
                 style={{
                   padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   background: 'rgba(109, 40, 217, 0.12)', color: '#a78bfa',
-                  border: '1px solid rgba(139, 92, 246, 0.25)', opacity: solving ? 0.4 : 1,
+                  border: '1px solid rgba(139, 92, 246, 0.25)', opacity: saving ? 0.4 : 1,
                 }}
               >
                 Cancel
               </button>
               <button
-                onClick={handleSolveConfirm}
-                disabled={solving}
+                onClick={handleConfirm}
+                disabled={saving}
                 style={{
-                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: solving ? 'default' : 'pointer',
-                  background: solving ? 'rgba(74, 222, 128, 0.15)' : 'linear-gradient(90deg, #16a34a, #15803d)',
-                  color: '#4ade80', border: '1px solid rgba(74, 222, 128, 0.35)',
-                  boxShadow: solving ? 'none' : '0 0 12px rgba(74, 222, 128, 0.2)',
-                  opacity: solving ? 0.7 : 1,
+                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? 'default' : 'pointer',
+                  background: saving
+                    ? (isSolved ? 'rgba(74, 222, 128, 0.15)' : 'rgba(248, 113, 113, 0.15)')
+                    : (isSolved ? 'linear-gradient(90deg, #16a34a, #15803d)' : 'linear-gradient(90deg, #dc2626, #b91c1c)'),
+                  color: isSolved ? '#4ade80' : '#fca5a5',
+                  border: `1px solid ${isSolved ? 'rgba(74, 222, 128, 0.35)' : 'rgba(248, 113, 113, 0.35)'}`,
+                  boxShadow: saving ? 'none' : (isSolved ? '0 0 12px rgba(74, 222, 128, 0.2)' : '0 0 12px rgba(248, 113, 113, 0.2)'),
+                  opacity: saving ? 0.7 : 1,
                 }}
               >
-                {solving ? 'Saving…' : '✓ Yes, solved'}
+                {saving ? 'Saving…' : (isSolved ? '✓ Yes, solved' : '✓ Yes, not solved')}
               </button>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Confirm reattempt modal */}
-      {confirmReattemptId !== null && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={() => !reattempting && setConfirmReattemptId(null)}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: 'linear-gradient(160deg, #130630 0%, #1c0a45 100%)',
-              border: '1px solid rgba(139, 92, 246, 0.35)',
-              borderRadius: 16,
-              boxShadow: '0 24px 64px rgba(109, 40, 217, 0.4)',
-              padding: '28px 32px',
-              minWidth: 300,
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⏱</div>
-            <div style={{ color: '#e9d5ff', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>
-              Update attempted date?
-            </div>
-            <div style={{ color: '#7c3aed', fontSize: 12, marginBottom: 24 }}>
-              #{confirmReattemptId} → today
-            </div>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => setConfirmReattemptId(null)}
-                disabled={reattempting}
-                style={{
-                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  background: 'rgba(109, 40, 217, 0.12)', color: '#a78bfa',
-                  border: '1px solid rgba(139, 92, 246, 0.25)', opacity: reattempting ? 0.4 : 1,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReattemptConfirm}
-                disabled={reattempting}
-                style={{
-                  padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: reattempting ? 'default' : 'pointer',
-                  background: reattempting ? 'rgba(167, 139, 250, 0.15)' : 'linear-gradient(90deg, #7c3aed, #9333ea)',
-                  color: '#e9d5ff', border: '1px solid rgba(139, 92, 246, 0.5)',
-                  boxShadow: reattempting ? 'none' : '0 0 12px rgba(124, 58, 237, 0.35)',
-                  opacity: reattempting ? 0.7 : 1,
-                }}
-              >
-                {reattempting ? 'Saving…' : '✓ Yes, update'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Floating chess board */}
       {hoveredFen && (
